@@ -14,11 +14,13 @@ import random
 import sys
 import io
 
+#reading training text (Nietzsche's works) into a variable
 path = get_file('nietzsche.txt', origin='https://s3.amazonaws.com/text-datasets/nietzsche.txt')
 with io.open(path, encoding='utf-8') as f:
     text = f.read().lower()
 print('corpus length:', len(text))
 
+#creating a list of output characters by scanning the text for unique characters
 chars = sorted(list(set(text)))
 print('total chars:', len(chars))
 char_indices = dict((c, i) for i, c in enumerate(chars))
@@ -102,8 +104,6 @@ if __name__ == '__main__':
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
 
     model = build_model(maxlen, chars)
-
-    import ipdb; ipdb.set_trace()
     
     model.fit(
         x,

@@ -3,6 +3,7 @@ MLP character model. Code adapted from https://github.com/keras-team/keras/blob/
 '''
 
 from __future__ import print_function
+from keras import layers
 from keras.callbacks import LambdaCallback
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten,Dropout
@@ -28,8 +29,8 @@ char_indices = dict((c, i) for i, c in enumerate(chars))
 indices_char = dict((i, c) for i, c in enumerate(chars))
 
 # cut the text in semi-redundant sequences of maxlen characters
-maxlen = 40
-step = 3
+maxlen = 8
+step = 4
 sentences = []
 next_chars = []
 for i in range(0, len(text) - maxlen, step):
@@ -50,28 +51,30 @@ def build_model(maxlen, chars):
     # build the model: an MLP with 1 hidden layer
     print('Build model...')
     model = Sequential()
-    '''model.add(Flatten(input_shape=(maxlen, len(chars))))
-    model.add(Dense(128))
-    model.add(Dense(len(chars)))
-    model.add(Activation('softmax'))
-
-    optimizer = RMSprop(lr=0.01)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer)'''
 
     #model.add(Flatten(input_shape=(maxlen, len(chars))))
 
-    model.add(Conv1D(64, 3, activation='relu',input_shape=(maxlen, len(chars))))
-    model.add(Conv1D(64, 3, activation='relu'))
-    model.add(MaxPooling1D(3))
-    model.add(Conv1D(128, 3, activation='relu'))
-    model.add(Conv1D(128, 3, activation='relu'))
+    model.add(Conv1D(64, 3, strides=1, padding='same', activation='relu', input_shape=(maxlen, len(chars))))
+    model.add(Conv1D(64, 3, strides=1, padding='same', activation='relu'))
+    model.add(MaxPooling1D(pool_size=2, strides=None, padding='valid'))
+    model.add(Conv1D(128, 2, strides=1, padding='same', activation='relu'))
+    model.add(Conv1D(128, 2, strides=1, padding='same', activation='relu'))
     model.add(GlobalAveragePooling1D())
     model.add(Dropout(0.5))
+
+    # tower_0 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
+    # tower_1 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
+    # tower_1 = Conv1D(64, (3, 3), padding=’same’, activation =’relu’)(tower_1)
+    # tower_2 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
+    # tower_2 = Conv1D(64, (5, 5), padding=’same’, activation =’relu’)(tower_2)
+    # tower_3 = MaxPooling1D((3, 3), strides=(1, 1), padding=’same’)(input_img)
+    # tower_3 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(tower_3)
+    # output = layers.concatenate([tower_0, tower_1, tower_2, tower_3], axis=1)
 
     model.add(Dense(128))
     model.add(Dense(len(chars)))
     model.add(Activation('softmax'))
-    optimizer = RMSprop(lr=0.01)
+    optimizer = RMSprop(lr=0.001)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
     return model
@@ -121,15 +124,12 @@ def on_epoch_end(epoch, logs):
 
 if __name__ == '__main__':
     print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
-
     model = build_model(maxlen, chars)
-
-    #import ipdb;ipdb.set_trace()
 
     model.fit(
         x,
         y,
         batch_size=16,
-        epochs=10,
+        epochs=1,
         callbacks=[print_callback]
     )
