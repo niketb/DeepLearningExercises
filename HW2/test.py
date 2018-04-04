@@ -59,17 +59,11 @@ def build_model(maxlen, chars):
     model.add(MaxPooling1D(pool_size=2, strides=None, padding='valid'))
     model.add(Conv1D(128, 2, strides=1, padding='same', activation='relu'))
     model.add(Conv1D(128, 2, strides=1, padding='same', activation='relu'))
-    model.add(GlobalAveragePooling1D())
+    avgpool = GlobalAveragePooling1D()
+    model.add(avgpool)
+    print(avgpool.input_shape)
+    print(avgpool.output_shape)
     model.add(Dropout(0.5))
-
-    # tower_0 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
-    # tower_1 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
-    # tower_1 = Conv1D(64, (3, 3), padding=’same’, activation =’relu’)(tower_1)
-    # tower_2 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(input_img)
-    # tower_2 = Conv1D(64, (5, 5), padding=’same’, activation =’relu’)(tower_2)
-    # tower_3 = MaxPooling1D((3, 3), strides=(1, 1), padding=’same’)(input_img)
-    # tower_3 = Conv1D(64, (1, 1), padding=’same’, activation =’relu’)(tower_3)
-    # output = layers.concatenate([tower_0, tower_1, tower_2, tower_3], axis=1)
 
     model.add(Dense(128))
     model.add(Dense(len(chars)))
@@ -130,6 +124,6 @@ if __name__ == '__main__':
         x,
         y,
         batch_size=16,
-        epochs=1,
+        epochs=10,
         callbacks=[print_callback]
     )
